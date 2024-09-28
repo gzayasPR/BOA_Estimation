@@ -1,0 +1,77 @@
+Note: This document was updated April 16, 2012
+
+Documentation of the LAMPLD/PED software package
+
+
+The LAMPLD/PED software package implements methods for perfoming local ancestry inference in 
+multi-way admixed populations (e.g. Latinos, a 3-way admixed populations), described in:
+Baran, Pasaniuc, Sankararaman et al. "Fast and accurate inference of local ancestry in 
+Latino populations" (Bioinformatics, 2012)
+
+1. BUILDING THE SOURCE CODE
+
+The executable files in the bin directory were built and tested on a Linux 64 bit machine. 
+If any of the executables do not run correctly, execute "make clean ; make all ; make install" 
+from the main directory.
+
+2. REQUIRED INPUT FILES
+
+<posfile>
+	- file containing physical positions of each SNP in the data one SNP per line
+	- Example: test_data/chr1.pos
+
+<ancestral haplotype files>
+	- file containing ancestral haplotype data one haplotype per line in a 0/1/?/ format, no spaces between alleles
+	- 0 denotes reference allele, 1 the alternate allele and '?' missing data; 
+	- encoding of reference allele is arbitrary but NEEDS to be consistent across all ancestral reference panels and admixed genotype sample
+	- for ensuring encoding consistency we recommend removing A/T and G/C SNPs if Affymetrix genotyping platforms are used
+	- one file per each ancestral population is required (e.g. for Latinos one file for each of the African, European, Native American ancestries)
+	- WARNING::Number of alleles per haplotype needs to match the number of SNPs in the posfile
+	- Example: test/EUR_haps.ref, test/NA_Haps.ref,  test/YRI_haps.ref
+
+<admixed genotype sample>
+	- one line per sample in a 0/1/2/? format
+	- 0/1/2 denotes number of reference alleles (encoding of allele NEEDS to be consistent in sample and reference panels)
+	- ? encodes missing data
+	- if file contains trio families then the order of samples in the file is REQUIRED to be Mother/Father/Child
+
+3. OUTPUT FILES
+
+<output of LAMP-LD>
+	- contains estimated local ancestries, one diploid sample per line
+	- for minimum data storage, encoding of local ancestry for each sample is given only as positions where ancestry changes (breakpoint) together with ancestry before
+	- E.g. 02:1000 00:3000 01:40000 11:50000 encodes local ancestry of 0/2 for all SNPs 0-999, 0/0 from SNP 1000-2999, 0/1 from SNP 3000-39999
+	- 0-encodes European ancestry, 1- Native American and 2-African
+	- to convert from this format into standard format of 2 lines per sample with local ancestry use convertLAMPLDout.pl
+
+<output of LAMP-PED>
+	- contains one line per haplotype, 4 lines per trio, Transmitted/Untransmittted/Transmitted/Untransmitted
+	- 0/1/2 denotes the ancestry of each allele in each haplotype	
+	- 0-encodes European ancestry, 1- Native American and 2-African
+
+4. TEST DATA
+	- example input files are provided in the test_data/ directory
+	- to run LAMP-PED on test data run:: perl run_LAMPPED.pl test_data/chr1.pos test_data/EUR_haps.ref test_data/NA_haps.ref test_data/YRI_haps.ref test_data/trio.gen test_data/lampped.out
+	- to convert LAMP-LD compact format to long format run:: perl convertLAMPLDout.pl test_data/lampld.out test_data/lampld.out.long
+
+5. ADVANCED PARAMETERS
+	- we recommend running LAMP-LD/PED separately for each chromosome, each chromosome in its own directory
+	- for computational reasons the maximum number of SNPs per chromosome is limited to 50,000
+	- we recommend running LAMP-LD/PED in batches of 50 to 100 samples
+	- we also recommend running LAMP-LD on nodes with large amounts of memory > 4Gb
+	- if program is too slow try reducing the number of states per SNP in the HMM by reducing the parameter 'numStatesHMM' in either run_LAMPPED.pl/run_LAMPLD.pl
+6. USE PRE-TRAINED HMMS
+       - for scalability when running in parallel you can train the hmm on the reference panels and use the trained hmm in parrallel:
+       - WARNING: the number of states and window length need to match!
+       Example: 
+       step 1: ./trainhmm 50 3 test_data/chr1.pos test_data/EUR_haps.ref test_data/NA_haps.ref test_data/YRI_haps.ref trained.hmm
+       step 2: ./unolanc 50 3 test_data/chr1.pos test_data/EUR_haps.ref test_data/NA_haps.ref test_data/YRI_haps.ref test_data/trio.gen trio.localanc trained.hmm
+7. CONTACT
+	-email bpasaniu@hsph.harvard.edu for bug reports, questions or comments.
+8. SOFTWARE COPYRIGHT NOTICE AGREEMENT
+   This software and its documentation are copyright (2011) by Harvard University
+   and The Broad Institute. All rights are reserved. This software is supplied
+   without any warranty or guaranteed support whatsoever. Neither Harvard
+   University nor The Broad Institute can be responsible for its use, misuse, or
+   functionality. The software may be freely copied for non-commercial purposes,
+   provided this copyright notice is retained.

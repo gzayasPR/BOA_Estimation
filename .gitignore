@@ -1,0 +1,6 @@
+/data/
+/results/
+/code/*.err
+/code/*.out
+bash_out/
+
