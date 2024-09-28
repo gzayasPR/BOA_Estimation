@@ -1,6 +1,6 @@
 /data/
 /results/
-/code/*.err
-/code/*.out
+/code/**/*.err
+/code/**/*.out
 bash_out/
 
