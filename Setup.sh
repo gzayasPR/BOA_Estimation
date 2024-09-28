@@ -30,3 +30,5 @@ chmod +x "$env_file"
 
 cd $my_code
 
+ml R
+Rscript setup.packages.R
