@@ -3,4 +3,4 @@
 /code/**/*.err
 /code/**/*.out
 bash_out/
-
+/code/project_env.sh
