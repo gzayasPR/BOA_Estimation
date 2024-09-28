@@ -2,5 +2,9 @@
 /results/
 /code/**/*.err
 /code/**/*.out
+/code/Breed_of_Origin/*.err
+/code/Breed_of_Origin/*.out
+/code/Tuning_BOA/*.out
+/code/Tuning_BOA/*.err
 bash_out/
 /code/project_env.sh
