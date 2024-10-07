@@ -30,13 +30,11 @@ F1=${my_data}/IDs/F1.ID
 NAME=UF.2024
 
 # Define parameters for analysis
-#hidden_states=(2 3 5 10 15)
-#window_sizes=(5 10 15 20 30 40 50)
-hidden_states=(2 3 )
-window_sizes=(5 10 )
+hidden_states=( 3 5 10 15)
+window_sizes=(5 10 15 20 30 40 50)
 folds=3
-missing_markers=0.01
-missing_ind=0.01
+missing_markers=0.1
+missing_ind=0.1
 afd=0.05
 
 # Create necessary directories
@@ -53,7 +51,7 @@ job_id=$(sbatch --job-name="Step1_${NAME}" \
                 --output="Step1_${NAME}1.out" \
                 --error="Step1_${NAME}1.err" \
                 --account="${account_name}" \
-                ${my_code}/Tuning_BOA/BOA_Scripts/1.PLINK.QC.V3.sh $proj_env $NAME $purelist $pop1_Pure $pop2_Pure $admix_list $F1 $genotypes $folds $missing_markers $missing_ind $afd | awk '{print $4}')
+                ${my_code}/Tuning_BOA/BOA_Scripts/1.PLINK.QC.V3.sh $proj_env $NAME $purelist $pop1_Pure $pop2_Pure $admix_list $F1 $genotypes $folds $missing_markers $missing_ind $afd $admix_list | awk '{print $4}')
 job_ids+=($job_id)
 
 # Wait for QC jobs to complete

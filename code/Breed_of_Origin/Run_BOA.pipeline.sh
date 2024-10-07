@@ -30,10 +30,10 @@ NAME=UF.2024
 
 # Define other parameters
 states=10
-WINDOW_Size=50
+WINDOW_Size=20
 folds=3
-missing_markers=0.01
-missing_ind=0.01
+missing_markers=0.1
+missing_ind=0.1
 afd=0.05
 
 
@@ -114,7 +114,7 @@ for job_id in "${job_ids[@]}"; do
     wait_for_job_completion $job_id 5
 done
 
-# Step 4: Create PLINK files for analysis
+Step 4: Create PLINK files for analysis
 mkdir -p ${bash_out}/Step4
 cd ${bash_out}/Step4
 

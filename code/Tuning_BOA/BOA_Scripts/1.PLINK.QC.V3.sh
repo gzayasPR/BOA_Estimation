@@ -21,6 +21,7 @@ fold=$9
 missing_markers=${10}
 missing_ind=${11}
 afd=${12}
+admix_list=${13}
 
 # Display parameters for clarity
 echo "Running pipeline with the following parameters:"
@@ -36,6 +37,7 @@ echo "      Folds: $fold"
 echo "      Missing Markers Threshold: $missing_markers"
 echo "      Missing Individual Threshold: $missing_ind"
 echo "      Allele Frequency Difference (AFD): $afd"
+echo "      Admix List: $admix_list"
 
 # Source project environment
 source $proj_env
@@ -117,8 +119,8 @@ if [[ ! -f "pop1.bed" || ! -f "pop2.bed" ]]; then
     exit 1
 fi
 
-# Step 6: Shuffle and Split pop1 and pop2 into Folds
-echo "Step 6: Shuffling and splitting pop1 and pop2 into folds..."
+# Step 6: Shuffle and Split pop1, pop2, and admix into Folds
+echo "Step 6: Shuffling and splitting pop1, pop2, and admix into folds..."
 cd ${my_results}/BOA_Tuning/Pure.Breed.Groups
 
 # Shuffle and split pop1 and pop2 into fold files with zero-padded numbers (00, 01, 02, etc.)
@@ -128,9 +130,13 @@ split -n l/${fold} -d  pop1_shuffled.txt pop1_Fold_
 shuf pop2.fam > pop2_shuffled.txt
 split -n l/${fold} -d  pop2_shuffled.txt pop2_Fold_
 
+# Shuffle and split admix_list into fold files
+shuf ${admix_list} > admix_shuffled.txt
+split -n l/${fold} -d admix_shuffled.txt admix_Fold_
+
 # Check if folds were created
-if [[ ! -f "pop1_Fold_00" || ! -f "pop2_Fold_00" ]]; then
-    echo "Error: Failed to create fold files for pop1 or pop2."
+if [[ ! -f "pop1_Fold_00" || ! -f "pop2_Fold_00" || ! -f "admix_Fold_00" ]]; then
+    echo "Error: Failed to create fold files for pop1, pop2, or admix."
     exit 1
 fi
 
@@ -143,22 +149,23 @@ for f in $(seq -w 00 $((fold - 1))); do
     cd ${my_results}/BOA_Tuning/Pure.Breed.Groups/Fold_${f}
     
     # Move fold files
-    mv ../pop1_Fold_${f} .
+    mv ../pop1_Fold_${f} . 
     mv ../pop2_Fold_${f} .
+    mv ../admix_Fold_${f} .
     
-    # Combine pop1 and pop2 fold files
-    cat pop2_Fold_${f} pop1_Fold_${f} > Train.Pure.txt
+    # Combine pop1, pop2, and admix fold files into Train.ADMIX.txt
+    cat pop2_Fold_${f} pop1_Fold_${f} admix_Fold_${f} > Train.ADMIX.txt
     
-    # Combine with F1 to create Train.ADMIX.txt
-    cat Train.Pure.txt ${F1} > Train.ADMIX.txt
+    # Combine Train.ADMIX.txt with F1
+    cat Train.ADMIX.txt ${F1} > Train.ADMIX_full.txt
     
-    # Check if Train.ADMIX.txt was created
-    if [[ ! -f "Train.ADMIX.txt" ]]; then
-        echo "Error: Failed to create Train.ADMIX.txt for fold ${f}."
+    # Check if Train.ADMIX_full.txt was created
+    if [[ ! -f "Train.ADMIX_full.txt" ]]; then
+        echo "Error: Failed to create Train.ADMIX_full.txt for fold ${f}."
         exit 1
     fi
 
-    # Create PLINK bed files for pop1 and pop2 after removing fold samples
+    # Create PLINK bed files for pop1, pop2, and admix after removing fold samples
     plink -cow -bfile ../pop2 --remove pop2_Fold_${f} -make-bed --silent -out pop2
     plink -cow -bfile ../pop1 --remove pop1_Fold_${f} -make-bed --silent -out pop1
 
@@ -173,7 +180,7 @@ for f in $(seq -w 00 $((fold - 1))); do
     mkdir -p ${my_results}/BOA_Tuning/Mixed.Groups/Fold_${f}
     cd ${my_results}/BOA_Tuning/Mixed.Groups/Fold_${f}
     
-    plink -cow -bfile ../${NAME} --keep ${my_results}/BOA_Tuning/Pure.Breed.Groups/Fold_${f}/Train.ADMIX.txt -make-bed --silent -out ${NAME}
+    plink -cow -bfile ../${NAME} --keep ${my_results}/BOA_Tuning/Pure.Breed.Groups/Fold_${f}/Train.ADMIX_full.txt -make-bed --silent -out ${NAME}
 
     # Check if PLINK file was created for the mixed group
     if [[ ! -f "${NAME}.bed" ]]; then

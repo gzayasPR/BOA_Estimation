@@ -56,7 +56,8 @@ If you use this repository in your work, please cite the following papers:
 
 - **BOA Estimation Pipeline**:  
   - Zayas, G., et al. (2024). _Breed of origin analysis in genome-wide association studies: enhancing SNP-based insights into production traits in a commercial Brangus population_. [DOI: 10.1186/s12864-024-10465-1](https://doi.org/10.1186/s12864-024-10465-1)
-
+- **Other Softwares for data management**:  
+- O. Tange (2011): GNU Parallel - The Command-Line Power Tool, ;login: The USENIX Magazine, February 2011:42-47.
 ## How to Use the Repository
 
 ### Setting Up the Environment

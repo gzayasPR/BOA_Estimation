@@ -2,8 +2,8 @@
 #SBATCH --time=72:00:00
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
-#SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=200gb
+#SBATCH --cpus-per-task=4  # Adjust this based on available cores
+#SBATCH --mem-per-cpu=50gb  # Reduced per CPU memory to allow multi-core processing
 
 # Log current date, hostname, and working directory
 date; hostname; pwd
@@ -28,33 +28,32 @@ PLINK_MAKE_SCRIPTS=${my_code}/Breed_of_Origin/BOA_Scripts/Cnv_BreedOrigin.PLINK_
 # Set up output directories
 cd ${resultsBO}/${NAME}
 mkdir -p ./Breed_of_Origin.files/MK.ped
-
-# Process each chromosome (01 to 29)
+ml parallel
+# Process each chromosome (01 to 29) using parallel execution
 cd ${resultsBO}/${NAME}/Breed_of_Origin.files/MK.ped
-for X in {01..29}; do
-    echo "Processing chromosome ${X}..."
+seq -w 01 29 | parallel -j4 "
+    echo 'Processing chromosome {}...';
     
-    # Combine the file operations using a pipeline and avoid intermediate files
-    cp ${resultsBO}/${NAME}/LAMPLD/$X/Chr.$X.txt $X.hap
+    # Combine file operations to reduce intermediate files and optimize processing
+    cp ${resultsBO}/${NAME}/LAMPLD/{}/Chr.{}.txt {}.hap
 
-    # Replace 0 with Angus (A) and 1 with Brahman (B), transpose and combine haplotypes in fewer steps
-    sed -e 's/./& /g' -e 's/0/A/g' -e 's/1/B/g' < $X.hap | \
+    # Efficiently replace, transpose, and format the haplotypes
+    sed -e 's/./& /g' -e 's/0/A/g' -e 's/1/B/g' < {}.hap | \
     awk -f ${PLINK_MAKE_SCRIPTS}/transpose.awk.txt | \
     sed 's/\(.\) \(.\)/\1\2/g' | \
     awk -f ${PLINK_MAKE_SCRIPTS}/transpose.awk.txt | \
     sed 's/ //g' | \
-    sed -e 's/\(.\)/\1 /g' > $X.geno.txt
+    sed -e 's/\(.\)/\1 /g' > {}.geno.txt
 
-    echo "Finished processing chromosome ${X}"
-done
-
+    echo 'Finished processing chromosome {}'
+"
 # Copy map file
 cp ${resultsBO}/Mixed.Groups/${NAME}.map ${NAME}.BO.map
 
 # Step 2: Grab IIDs from the .ped file and save into a new file
 awk '{print $1,$2,$3,$4,$5,$6}' ${resultsBO}/Mixed.Groups/${NAME}.ped > ${NAME}.BO.ID
 
-# Run R script
+# Run R script for combining geno files into .ped format
 module load R
 Rscript ${PLINK_MAKE_SCRIPTS}/test9_F.R
 
