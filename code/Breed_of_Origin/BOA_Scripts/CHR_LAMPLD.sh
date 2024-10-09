@@ -3,7 +3,7 @@
 #SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --cpus-per-task=1
-#SBATCH --mem-per-cpu=10gb
+#SBATCH --mem-per-cpu=12gb
 
 # Log the date, hostname, and current working directory
 date; hostname; pwd

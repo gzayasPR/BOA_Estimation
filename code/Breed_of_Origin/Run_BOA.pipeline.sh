@@ -29,12 +29,12 @@ admix_list=${my_data}/IDs/Mixed.Group.ID
 NAME=UF.2024
 
 # Define other parameters
-states=10
-WINDOW_Size=20
+states=15
+WINDOW_Size=10
 folds=3
 missing_markers=0.1
 missing_ind=0.1
-afd=0.05
+afd=0.01
 
 
 # Set up output directories
@@ -46,56 +46,56 @@ bash_out=${my_code}/Breed_of_Origin/bash_out
 mkdir -p ${bash_out}/Step1
 cd ${bash_out}/Step1
 
-job_ids=()
-job_id=$(sbatch --job-name="${NAME}_Step1" \
-                --output="${NAME}_Step1.out" \
-                --error="${NAME}_Step1.err" \
-                --account="${account_name}" \
-                ${my_code}/Breed_of_Origin/BOA_Scripts/1.PLINK.QC.sh $proj_env $NAME $purelist $pop1_Pure $pop2_Pure $admix_list $genotypes $missing_markers $missing_ind $afd | awk '{print $4}')
-job_ids+=($job_id)
+# job_ids=()
+# job_id=$(sbatch --job-name="${NAME}_Step1" \
+#                 --output="${NAME}_Step1.out" \
+#                 --error="${NAME}_Step1.err" \
+#                 --account="${account_name}" \
+#                 ${my_code}/Breed_of_Origin/BOA_Scripts/1.PLINK.QC.sh $proj_env $NAME $purelist $pop1_Pure $pop2_Pure $admix_list $genotypes $missing_markers $missing_ind $afd | awk '{print $4}')
+# job_ids+=($job_id)
 
-# Wait for Step 1 to complete
-echo "Waiting for Step 1 jobs to complete..."
-for job_id in "${job_ids[@]}"; do
-    wait_for_job_completion $job_id 5
-done
+# # Wait for Step 1 to complete
+# echo "Waiting for Step 1 jobs to complete..."
+# for job_id in "${job_ids[@]}"; do
+#     wait_for_job_completion $job_id 5
+# done
 
-# Check if required PLINK files were created
-if [[ ! -f "${my_results}/Breed.of.Origin/Mixed.Groups/${NAME}.bed" || \
-      ! -f "${my_results}/Breed.of.Origin/Pure.Breed.Groups/pop1.bed" || \
-      ! -f "${my_results}/Breed.of.Origin/Pure.Breed.Groups/pop2.bed" ]]; then
-    echo "Step 1 Error: Required PLINK files were not created."
-    exit 1
-fi
+# # Check if required PLINK files were created
+# if [[ ! -f "${my_results}/Breed.of.Origin/Mixed.Groups/${NAME}.bed" || \
+#       ! -f "${my_results}/Breed.of.Origin/Pure.Breed.Groups/pop1.bed" || \
+#       ! -f "${my_results}/Breed.of.Origin/Pure.Breed.Groups/pop2.bed" ]]; then
+#     echo "Step 1 Error: Required PLINK files were not created."
+#     exit 1
+# fi
 
-# Step 2: Run Phasing
-mkdir -p ${bash_out}/Step2
-cd ${bash_out}/Step2
+# # Step 2: Run Phasing
+# mkdir -p ${bash_out}/Step2
+# cd ${bash_out}/Step2
 
-job_id=$(sbatch --job-name="${NAME}_Step2" \
-                --output="${NAME}_Step2.out" \
-                --error="${NAME}_Step2.err" \
-                --account="${account_name}" \
-                ${my_code}/Breed_of_Origin/BOA_Scripts/2.run_Phasing_PB.sh $proj_env $NAME ${bash_out}/Step2 ${account_name} | awk '{print $4}')
-job_ids+=($job_id)
+# job_id=$(sbatch --job-name="${NAME}_Step2" \
+#                 --output="${NAME}_Step2.out" \
+#                 --error="${NAME}_Step2.err" \
+#                 --account="${account_name}" \
+#                 ${my_code}/Breed_of_Origin/BOA_Scripts/2.run_Phasing_PB.sh $proj_env $NAME ${bash_out}/Step2 ${account_name} | awk '{print $4}')
+# job_ids+=($job_id)
 
-# Wait for Step 2 to complete
-echo "Waiting for Step 2 jobs to complete..."
-for job_id in "${job_ids[@]}"; do
-    wait_for_job_completion $job_id 5
-done
+# # Wait for Step 2 to complete
+# echo "Waiting for Step 2 jobs to complete..."
+# for job_id in "${job_ids[@]}"; do
+#     wait_for_job_completion $job_id 5
+# done
 
-# Check if required phasing files exist for each chromosome (01-29)
-for X in $(seq -w 01 29); do
-    if [[ ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/${NAME}.${X}.map" || \
-          ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/${NAME}.${X}.ped" || \
-          ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/Chr${X}.snp" || \
-          ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/pop1.formatted_haplotypes.txt" || \
-          ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/pop2.formatted_haplotypes.txt" ]]; then
-        echo "Error: Phasing step failed for chromosome ${X}. Required files were not created."
-        exit 1
-    fi
-done
+# # Check if required phasing files exist for each chromosome (01-29)
+# for X in $(seq -w 01 29); do
+#     if [[ ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/${NAME}.${X}.map" || \
+#           ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/${NAME}.${X}.ped" || \
+#           ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/Chr${X}.snp" || \
+#           ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/pop1.formatted_haplotypes.txt" || \
+#           ! -f "${my_results}/Breed.of.Origin/${NAME}/LAMPLD/${X}/pop2.formatted_haplotypes.txt" ]]; then
+#         echo "Error: Phasing step failed for chromosome ${X}. Required files were not created."
+#         exit 1
+#     fi
+# done
 
 # Step 3: Run LAMPLD Analysis
 mkdir -p ${bash_out}/Step3
@@ -114,7 +114,7 @@ for job_id in "${job_ids[@]}"; do
     wait_for_job_completion $job_id 5
 done
 
-Step 4: Create PLINK files for analysis
+#Step 4: Create PLINK files for analysis
 mkdir -p ${bash_out}/Step4
 cd ${bash_out}/Step4
 
